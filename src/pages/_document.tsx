@@ -38,14 +38,14 @@ export default class MyDocument extends Document {
         <Head>
           <meta charSet="utf-8" />
 
-          <link rel="preconnect" href="https://fonts.gstatic.com" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link
-            href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap"
-            rel="stylesheet"
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="true"
           />
-
           <link
-            href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap"
             rel="stylesheet"
           />
         </Head>
