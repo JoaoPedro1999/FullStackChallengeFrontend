@@ -1,10 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
-import { BiRocket } from "react-icons/bi";
+import { BiRocket, BiSearch } from "react-icons/bi";
 import {
   Header,
+  HeaderInputs,
   IconContainer,
   Container,
   Article,
@@ -12,11 +12,15 @@ import {
   ArticleContent,
 } from "@/styles/home";
 import api from "@/services/api";
-
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import Select from "react-select";
-import { useCallback, useState } from "react";
+import {
+  FormEvent,
+  FormEventHandler,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { useRouter } from "next/router";
 
 type ArticlesProps = {
   id: string;
@@ -40,10 +44,18 @@ type HomeProps = {
   articlesServer: ArticlesProps[];
 };
 
+const options = [
+  { value: "DESC", label: "Decrescente" },
+  { value: "ASC", label: "Acedente" },
+];
+
 const Home: NextPage<HomeProps> = ({ articlesServer }) => {
   const [articles, setArticles] = useState(articlesServer);
   const [page, setPage] = useState(1);
   const [orderArticle, setOrderArticle] = useState("DESC");
+  const [inputSearch, setInputSearch] = useState("");
+
+  const { push } = useRouter();
 
   const handleGetMoreArticles = useCallback(async () => {
     const { data } = await api.get<ArticlesProps[]>(
@@ -54,16 +66,64 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
     setPage((prevPage) => prevPage + 1);
   }, [page, orderArticle]);
 
+  useEffect(() => {
+    api
+      .get<ArticlesProps[]>(`articles?page=0&orderBy=${orderArticle}`)
+      .then((response) => setArticles(response.data));
+  }, [orderArticle]);
+
+  const handleSearchArticle = useCallback(
+    async (e: any) => {
+      e.preventDefault();
+
+      const { data } = await api.get<ArticlesProps[]>(
+        `articles?keyword=${inputSearch}`
+      );
+
+      setArticles(data);
+
+      setInputSearch("");
+    },
+    [inputSearch]
+  );
+
+  const handleOpenArticlePage = useCallback(
+    (page: string) => {
+      push(page);
+    },
+    [push]
+  );
+
+  console.log("inputSearch", inputSearch);
+
   return (
     <>
       <Head>
         <title>Space Flight News 🚀</title>
       </Head>
       <Header>
-        <div>
-          <input type="Text" />
-          <button type="button"></button>
-        </div>
+        <HeaderInputs>
+          <div>
+            <form onSubmit={handleSearchArticle}>
+              <input
+                value={inputSearch}
+                placeholder={"Busque"}
+                onChange={(e) => setInputSearch(e.currentTarget.value)}
+              />
+              <button type="submit">
+                <BiSearch size={18} color="#fff" />
+              </button>
+            </form>
+          </div>
+          <Select
+            options={options}
+            value={options.find((option) => option.value === orderArticle)}
+            onChange={(option) => {
+              setOrderArticle(option?.value || "");
+            }}
+            classNamePrefix={"react-select"}
+          />
+        </HeaderInputs>
 
         <IconContainer>
           <BiRocket size={80} />
@@ -75,7 +135,7 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
         {articles.map((article) => (
           <Article key={article.id}>
             <ArticleImage>
-              <img src={article.imageUrl} alt="Image" width={500} />
+              <img src={article.imageUrl} alt="Image" />
             </ArticleImage>
             <ArticleContent>
               <h3>{article.title}</h3>
@@ -84,14 +144,21 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
                 <span>{article.newsSite}</span>
               </div>
               <p>{article.summary}</p>
-              <button type="button">Ver mais</button>
+              <button
+                type="button"
+                onClick={() => handleOpenArticlePage(article.url)}
+              >
+                Ver mais
+              </button>
             </ArticleContent>
           </Article>
         ))}
 
-        <button type="button" onClick={() => handleGetMoreArticles()}>
-          Carregar Mais
-        </button>
+        {inputSearch.length !== 0 ? null : (
+          <button type="button" onClick={() => handleGetMoreArticles()}>
+            Carregar Mais
+          </button>
+        )}
       </Container>
     </>
   );
