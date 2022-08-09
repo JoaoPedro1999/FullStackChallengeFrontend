@@ -45,8 +45,8 @@ type HomeProps = {
 };
 
 const options = [
-  { value: "DESC", label: "Decrescente" },
-  { value: "ASC", label: "Acedente" },
+  { value: "DESC", label: "Mais Recente" },
+  { value: "ASC", label: "Mais Antigos" },
 ];
 
 const Home: NextPage<HomeProps> = ({ articlesServer }) => {
@@ -94,8 +94,6 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
     [push]
   );
 
-  console.log("inputSearch", inputSearch);
-
   return (
     <>
       <Head>
@@ -107,7 +105,7 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
             <form onSubmit={handleSearchArticle}>
               <input
                 value={inputSearch}
-                placeholder={"Busque"}
+                placeholder={"Pesquisar"}
                 onChange={(e) => setInputSearch(e.currentTarget.value)}
               />
               <button type="submit">
