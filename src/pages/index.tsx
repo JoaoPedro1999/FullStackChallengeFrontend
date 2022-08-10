@@ -204,7 +204,7 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
                     type="button"
                     onClick={() => handleOpenEditModal(article)}
                   >
-                    <BiEdit size={24} color="#fff" />
+                    <BiEdit size={24} color="#302e53" />
                   </button>
                 )}
                 {query.admin === "true" && (
