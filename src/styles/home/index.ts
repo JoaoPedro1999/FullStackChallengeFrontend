@@ -208,12 +208,19 @@ export const ArticleContent = styled.div`
     text-align: justify;
   }
 
-  button {
-    border: none;
-    height: 3.2rem;
-    width: 8rem;
-    color: ${({ theme }) => theme.colors.background};
-    background: ${({ theme }) => theme.colors.secundary};
+  div {
+    button:first-child {
+      border: none;
+      height: 3.2rem;
+      width: 8rem;
+      color: ${({ theme }) => theme.colors.background};
+      background: ${({ theme }) => theme.colors.secundary};
+    }
+
+    button {
+      border: none;
+      background: transparent;
+    }
   }
 
   @media (max-width: 1024px) {

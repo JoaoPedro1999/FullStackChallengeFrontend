@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import { BiRocket, BiSearch } from "react-icons/bi";
+import { BiRocket, BiSearch, BiX, BiEdit } from "react-icons/bi";
 import {
   Header,
   HeaderInputs,
@@ -21,8 +21,10 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/router";
+import EditModal from "@/components/EditModal";
+import NewArticleModal from "@/components/NewArticleModal";
 
-type ArticlesProps = {
+export type ArticlesProps = {
   id: string;
   title: string;
   featured: boolean;
@@ -51,11 +53,17 @@ const options = [
 
 const Home: NextPage<HomeProps> = ({ articlesServer }) => {
   const [articles, setArticles] = useState(articlesServer);
+  const [selectedArticle, setSelectedArticle] = useState<ArticlesProps>(
+    {} as ArticlesProps
+  );
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openNewArticleModal, setOpenNewArticleModal] = useState(false);
+
   const [page, setPage] = useState(1);
   const [orderArticle, setOrderArticle] = useState("DESC");
   const [inputSearch, setInputSearch] = useState("");
 
-  const { push } = useRouter();
+  const { push, query } = useRouter();
 
   const handleGetMoreArticles = useCallback(async () => {
     const { data } = await api.get<ArticlesProps[]>(
@@ -87,12 +95,49 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
     [inputSearch]
   );
 
+  const handleDeleteArticle = useCallback(async (articleId: string) => {
+    await api.delete(`articles/${articleId}`);
+
+    const { data } = await api.get<ArticlesProps[]>(
+      `articles?page=0&orderBy=DESC`
+    );
+
+    setArticles(data);
+  }, []);
+
+  const handleOpenEditModal = useCallback((article: ArticlesProps) => {
+    setSelectedArticle(article);
+    setOpenEditModal(true);
+  }, []);
+
+  const handleOpenNewArticleModal = useCallback(() => {
+    setOpenNewArticleModal(true);
+  }, []);
+
   const handleOpenArticlePage = useCallback(
     (page: string) => {
       push(page);
     },
     [push]
   );
+
+  const toggleEditModal = useCallback(async () => {
+    setOpenEditModal(!openEditModal);
+    const { data } = await api.get<ArticlesProps[]>(
+      `articles?page=0&orderBy=DESC`
+    );
+
+    setArticles(data);
+  }, [openEditModal]);
+
+  const toggleNewArticleModal = useCallback(async () => {
+    setOpenNewArticleModal(!openNewArticleModal);
+    const { data } = await api.get<ArticlesProps[]>(
+      `articles?page=0&orderBy=DESC`
+    );
+
+    setArticles(data);
+  }, [openNewArticleModal]);
 
   return (
     <>
@@ -130,6 +175,11 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
         <h1>Space Flight News</h1>
       </Header>
       <Container>
+        {query.admin === "true" && (
+          <button type="button" onClick={() => handleOpenNewArticleModal()}>
+            Novo Artigo
+          </button>
+        )}
         {articles.map((article) => (
           <Article key={article.id}>
             <ArticleImage>
@@ -142,12 +192,30 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
                 <span>{article.newsSite}</span>
               </div>
               <p>{article.summary}</p>
-              <button
-                type="button"
-                onClick={() => handleOpenArticlePage(article.url)}
-              >
-                Ver mais
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenArticlePage(article.url)}
+                >
+                  Ver mais
+                </button>
+                {query.admin === "true" && (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(article)}
+                  >
+                    <BiEdit size={24} color="#fff" />
+                  </button>
+                )}
+                {query.admin === "true" && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteArticle(article.id)}
+                  >
+                    <BiX size={24} color="#ff0000" />
+                  </button>
+                )}
+              </div>
             </ArticleContent>
           </Article>
         ))}
@@ -158,6 +226,19 @@ const Home: NextPage<HomeProps> = ({ articlesServer }) => {
           </button>
         )}
       </Container>
+      {query.admin === "true" && (
+        <>
+          <EditModal
+            isOpen={openEditModal}
+            setIsOpen={toggleEditModal}
+            article={selectedArticle}
+          />
+          <NewArticleModal
+            isOpen={openNewArticleModal}
+            setIsOpen={toggleNewArticleModal}
+          />
+        </>
+      )}
     </>
   );
 };
